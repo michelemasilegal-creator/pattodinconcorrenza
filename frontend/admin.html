@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — pattodinconcorrenza.it</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f3efe7; --white: #fff; --navy: #1e3a6b; --navy-dark: #162c52;
+      --red: #c8262b; --text: #1a1714; --text-mid: #5a544c; --text-light: #8a847c;
+      --border: #d6cfc1; --border-light: #ebe5da; --bg-paper: #faf7f1;
+      --font-body: 'Inter Tight', system-ui, sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+    body { font-family: var(--font-body); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: var(--navy); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* LOGIN */
+    #login-screen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: var(--navy);
+    }
+    .login-box {
+      background: var(--white); border-radius: 8px; padding: 48px 40px;
+      width: 360px; text-align: center;
+    }
+    .login-box h1 { font-family: 'Instrument Serif', serif; font-size: 24px; color: var(--navy); margin-bottom: 8px; }
+    .login-box p { color: var(--text-mid); font-size: 14px; margin-bottom: 28px; }
+    .login-box input {
+      width: 100%; padding: 11px 14px; border: 1px solid var(--border);
+      border-radius: 4px; font-family: var(--font-body); font-size: 15px;
+      margin-bottom: 14px; background: var(--bg);
+    }
+    .login-box input:focus { outline: none; border-color: var(--navy); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-body); font-size: 14px; font-weight: 500; padding: 11px 22px; border-radius: 999px; border: 1.5px solid transparent; cursor: pointer; transition: all .2s; text-decoration: none; }
+    .btn-navy { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .btn-navy:hover { background: var(--navy-dark); }
+    .btn-sm { padding: 7px 14px; font-size: 13px; }
+    .btn-ghost { background: transparent; color: var(--text); border-color: var(--border); }
+    .btn-ghost:hover { background: var(--border); }
+    .btn-danger { background: var(--red); color: #fff; border-color: var(--red); font-size: 12px; padding: 5px 12px; }
+    .btn-danger:hover { opacity: .85; }
+    #login-error { color: var(--red); font-size: 13px; margin-top: 10px; }
+    #login-btn { width: 100%; justify-content: center; }
+
+    /* MAIN LAYOUT */
+    #admin-screen { display: none; }
+    .admin-header {
+      background: var(--navy); color: #fff; padding: 0 40px;
+      display: flex; align-items: center; justify-content: space-between; height: 60px;
+    }
+    .admin-header h1 { font-family: 'Instrument Serif', serif; font-size: 18px; font-weight: 400; }
+    .admin-body { max-width: 1200px; margin: 0 auto; padding: 40px; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 4px; margin-bottom: 32px; border-bottom: 1px solid var(--border); }
+    .tab { padding: 10px 22px; font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; border: none; background: none; color: var(--text-light); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .2s; }
+    .tab.active { color: var(--navy); border-bottom-color: var(--navy); font-weight: 500; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* STATS */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+    .stat { background: var(--white); border: 1px solid var(--border); border-radius: 6px; padding: 20px 24px; }
+    .stat-num { font-size: 28px; font-weight: 600; color: var(--navy); }
+    .stat-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-light); letter-spacing: .08em; text-transform: uppercase; margin-top: 4px; }
+
+    /* TABLE */
+    .table-wrap { background: var(--white); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-light); padding: 12px 16px; text-align: left; background: var(--bg-paper); border-bottom: 1px solid var(--border); }
+    td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg-paper); }
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+    .badge-valid { background: #e8f5e9; color: #2e7d32; }
+    .badge-invalid { background: #ffebee; color: #c62828; }
+    .badge-uncertain { background: #fff8e1; color: #f57f17; }
+
+    /* KNOWLEDGE BASE */
+    .kb-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .kb-header h2 { font-family: 'Instrument Serif', serif; font-size: 22px; }
+    .kb-drop {
+      border: 2px dashed var(--border); border-radius: 6px; padding: 32px;
+      text-align: center; margin-bottom: 24px; cursor: pointer; transition: .2s;
+    }
+    .kb-drop.drag-over { border-color: var(--navy); background: #e8edf5; }
+    .kb-drop p { color: var(--text-mid); font-size: 14px; }
+    #kb-file-input { display: none; }
+    .kb-list { background: var(--white); border: 1px solid var(--border); border-radius: 8px; }
+    .kb-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border-light); }
+    .kb-item:last-child { border-bottom: none; }
+    .kb-item-name { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    .kb-item-size { font-family: var(--font-mono); font-size: 12px; color: var(--text-light); margin-left: 8px; }
+    #kb-status { font-size: 13px; margin-top: 12px; text-align: center; }
+
+    .empty-state { text-align: center; padding: 48px; color: var(--text-light); }
+    #loading { text-align: center; padding: 48px; color: var(--text-light); }
+
+    @media (max-width: 768px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .admin-body { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Admin Panel</h1>
+    <p>pattodinconcorrenza.it</p>
+    <input type="text" id="login-user" placeholder="Username" value="admin">
+    <input type="password" id="login-pass" placeholder="Password">
+    <button class="btn btn-navy" id="login-btn">Accedi</button>
+    <p id="login-error"></p>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-screen">
+  <div class="admin-header">
+    <h1>⚖ Admin — pattodinconcorrenza.it</h1>
+    <div style="display:flex;gap:12px;align-items:center">
+      <a href="/" class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,.3)">← Sito</a>
+      <button class="btn btn-ghost btn-sm" id="logout-btn" style="color:#fff;border-color:rgba(255,255,255,.3)">Esci</button>
+    </div>
+  </div>
+
+  <div class="admin-body">
+    <div class="tabs">
+      <button class="tab active" data-tab="patti">Patti Caricati</button>
+      <button class="tab" data-tab="knowledge">Knowledge Base</button>
+    </div>
+
+    <!-- TAB: PATTI -->
+    <div class="tab-panel active" id="tab-patti">
+      <div class="stats" id="stats-row">
+        <div class="stat"><div class="stat-num" id="st-total">—</div><div class="stat-label">Totale patti</div></div>
+        <div class="stat"><div class="stat-num" id="st-valid" style="color:#2e7d32">—</div><div class="stat-label">Validi</div></div>
+        <div class="stat"><div class="stat-num" id="st-invalid" style="color:var(--red)">—</div><div class="stat-label">Non validi</div></div>
+        <div class="stat"><div class="stat-num" id="st-uncertain" style="color:#f57f17">—</div><div class="stat-label">Incerti</div></div>
+      </div>
+      <div id="loading">Caricamento…</div>
+      <div class="table-wrap" id="patti-table" style="display:none">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>File</th>
+              <th>Utente</th>
+              <th>Email</th>
+              <th>Esito AI</th>
+              <th>Score</th>
+              <th>Sintesi</th>
+              <th>Download</th>
+            </tr>
+          </thead>
+          <tbody id="patti-tbody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="patti-empty" style="display:none">Nessun patto caricato ancora.</div>
+    </div>
+
+    <!-- TAB: KNOWLEDGE BASE -->
+    <div class="tab-panel" id="tab-knowledge">
+      <div class="kb-header">
+        <h2>Documenti Knowledge Base</h2>
+        <button class="btn btn-navy btn-sm" id="kb-upload-btn">+ Aggiungi documento</button>
+      </div>
+      <input type="file" id="kb-file-input" accept=".pdf,.docx,.doc,.txt,.md">
+
+      <div class="kb-drop" id="kb-drop">
+        <p>Trascina qui un documento (PDF, DOCX, TXT, MD) da aggiungere alla knowledge base dell'AI</p>
+        <p style="font-size:13px;margin-top:8px;color:#aaa">oppure usa il pulsante sopra</p>
+      </div>
+
+      <div id="kb-loading" style="text-align:center;padding:32px;color:var(--text-light)">Caricamento…</div>
+      <div class="kb-list" id="kb-list" style="display:none"></div>
+      <div class="empty-state" id="kb-empty" style="display:none">Nessun documento nella knowledge base.</div>
+      <p id="kb-status"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+let credentials = null;
+
+function b64(u, p) { return btoa(u + ':' + p); }
+function authHeader() { return 'Basic ' + credentials; }
+
+/* ── LOGIN ─────────────────────────────────────────────────────────────── */
+document.getElementById('login-btn').addEventListener('click', doLogin);
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+async function doLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  err.textContent = '';
+  const creds = b64(u, p);
+  try {
+    const res = await fetch('/api/admin', { headers: { Authorization: 'Basic ' + creds } });
+    if (res.status === 401) { err.textContent = 'Credenziali non valide.'; return; }
+    if (!res.ok) throw new Error('Errore ' + res.status);
+    credentials = creds;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = 'block';
+    loadPatti(await res.json());
+    loadKnowledge();
+  } catch(e) { err.textContent = e.message; }
+}
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  credentials = null;
+  document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pass').value = '';
+});
+
+/* ── TABS ───────────────────────────────────────────────────────────────── */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+/* ── PATTI ──────────────────────────────────────────────────────────────── */
+function loadPatti(data) {
+  const records = data.records || [];
+  document.getElementById('loading').style.display = 'none';
+
+  const counts = { valid: 0, invalid: 0, uncertain: 0 };
+  records.forEach(r => {
+    if (r.valido === true) counts.valid++;
+    else if (r.valido === false) counts.invalid++;
+    else counts.uncertain++;
+  });
+  document.getElementById('st-total').textContent = records.length;
+  document.getElementById('st-valid').textContent = counts.valid;
+  document.getElementById('st-invalid').textContent = counts.invalid;
+  document.getElementById('st-uncertain').textContent = counts.uncertain;
+
+  if (records.length === 0) { document.getElementById('patti-empty').style.display = 'block'; return; }
+  document.getElementById('patti-table').style.display = 'block';
+
+  const tbody = document.getElementById('patti-tbody');
+  tbody.innerHTML = records.map(r => {
+    const dt = new Date(r.uploaded_at).toLocaleString('it-IT');
+    const badge = r.valido === true
+      ? '<span class="badge badge-valid">✓ Valido</span>'
+      : r.valido === false
+        ? '<span class="badge badge-invalid">✗ Non valido</span>'
+        : '<span class="badge badge-uncertain">? Incerto</span>';
+    const sintesi = (r.sintesi || '').substring(0, 100) + (r.sintesi && r.sintesi.length > 100 ? '…' : '');
+    return `<tr>
+      <td><span style="font-family:var(--font-mono);font-size:12px">${dt}</span></td>
+      <td><strong>${r.filename || ''}</strong></td>
+      <td>${r.user_name || '<span style="color:var(--text-light)">—</span>'}</td>
+      <td>${r.user_email ? `<a href="mailto:${r.user_email}">${r.user_email}</a>` : '<span style="color:var(--text-light)">—</span>'}</td>
+      <td>${badge}</td>
+      <td><span style="font-family:var(--font-mono);font-size:13px">${r.punteggio ?? '—'}/100</span></td>
+      <td style="font-size:13px;color:var(--text-mid);max-width:220px">${sintesi}</td>
+      <td><a href="${r.download_url}" class="btn btn-navy btn-sm" download>↓ Scarica</a></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── KNOWLEDGE BASE ─────────────────────────────────────────────────────── */
+async function loadKnowledge() {
+  document.getElementById('kb-loading').style.display = 'block';
+  document.getElementById('kb-list').style.display = 'none';
+  document.getElementById('kb-empty').style.display = 'none';
+  try {
+    const res = await fetch('/api/admin/knowledge', { headers: { Authorization: authHeader() } });
+    const data = await res.json();
+    renderKnowledge(data.files || []);
+  } catch(e) { document.getElementById('kb-status').textContent = 'Errore caricamento knowledge base.'; }
+  document.getElementById('kb-loading').style.display = 'none';
+}
+
+function renderKnowledge(files) {
+  if (files.length === 0) { document.getElementById('kb-empty').style.display = 'block'; return; }
+  document.getElementById('kb-list').style.display = 'block';
+  document.getElementById('kb-list').innerHTML = files.map(f => `
+    <div class="kb-item" id="kb-${CSS.escape(f.name)}">
+      <div class="kb-item-name">
+        <span>${fileIcon(f.name)}</span>
+        <span>${f.name}</span>
+        <span class="kb-item-size">${f.size_kb} KB</span>
+      </div>
+      <button class="btn btn-danger" onclick="deleteKb('${f.name.replace(/'/g, "\\'")}')">Elimina</button>
+    </div>`).join('');
+}
+
+function fileIcon(name) {
+  if (name.endsWith('.pdf')) return '📄';
+  if (name.endsWith('.docx') || name.endsWith('.doc')) return '📝';
+  return '📋';
+}
+
+async function deleteKb(filename) {
+  if (!confirm(`Eliminare "${filename}" dalla knowledge base?`)) return;
+  const status = document.getElementById('kb-status');
+  try {
+    const res = await fetch('/api/admin/knowledge/' + encodeURIComponent(filename), {
+      method: 'DELETE',
+      headers: { Authorization: authHeader() }
+    });
+    if (!res.ok) throw new Error('Errore ' + res.status);
+    status.style.color = '#2e7d32';
+    status.textContent = `"${filename}" eliminato.`;
+    loadKnowledge();
+  } catch(e) { status.style.color = 'var(--red)'; status.textContent = e.message; }
+}
+
+async function uploadKb(file) {
+  const status = document.getElementById('kb-status');
+  status.style.color = 'var(--navy)';
+  status.textContent = `Caricamento "${file.name}"…`;
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const res = await fetch('/api/admin/knowledge', {
+      method: 'POST',
+      headers: { Authorization: authHeader() },
+      body: fd
+    });
+    if (!res.ok) { const d = await res.json(); throw new Error(d.detail || 'Errore upload'); }
+    status.style.color = '#2e7d32';
+    status.textContent = `"${file.name}" aggiunto alla knowledge base.`;
+    loadKnowledge();
+  } catch(e) { status.style.color = 'var(--red)'; status.textContent = e.message; }
+}
+
+document.getElementById('kb-upload-btn').addEventListener('click', () => document.getElementById('kb-file-input').click());
+document.getElementById('kb-file-input').addEventListener('change', e => { if (e.target.files[0]) uploadKb(e.target.files[0]); e.target.value = ''; });
+
+const kbDrop = document.getElementById('kb-drop');
+kbDrop.addEventListener('dragover', e => { e.preventDefault(); kbDrop.classList.add('drag-over'); });
+kbDrop.addEventListener('dragleave', () => kbDrop.classList.remove('drag-over'));
+kbDrop.addEventListener('drop', e => { e.preventDefault(); kbDrop.classList.remove('drag-over'); if (e.dataTransfer.files[0]) uploadKb(e.dataTransfer.files[0]); });
+kbDrop.addEventListener('click', () => document.getElementById('kb-file-input').click());
+</script>
+</body>
+</html>
