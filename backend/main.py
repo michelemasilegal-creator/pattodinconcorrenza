@@ -23,6 +23,8 @@ from email_service import notify_new_upload, notify_contact
 UPLOADS_DIR = Path(__file__).parent / "uploads"
 KNOWLEDGE_DIR = Path(__file__).parent / "knowledge"
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
+UPLOADS_DIR.mkdir(exist_ok=True)
+KNOWLEDGE_DIR.mkdir(exist_ok=True)
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
 ALLOWED_EXTENSIONS = {".pdf", ".docx", ".doc"}
 MAX_FILE_MB = 10
