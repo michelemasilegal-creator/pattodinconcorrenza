@@ -373,6 +373,17 @@ footer {
 .footer-bottom a { color: rgba(255,255,255,.6); text-decoration: underline; }
 .footer-bottom a:hover { color: #fff; }
 
+/* ── FAQ ── */
+#faq { background: var(--bg-paper); }
+.faq-list { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.faq-item { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--white); overflow: hidden; }
+.faq-item summary { cursor: pointer; padding: 22px 28px; font-family: var(--font-serif); font-size: 18px; font-weight: 500; color: var(--text-dark); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after { content: '+'; font-family: var(--font-body); font-size: 22px; font-weight: 300; color: var(--navy); flex-shrink: 0; transition: transform .25s; }
+.faq-item[open] summary::after { transform: rotate(45deg); }
+.faq-item p { padding: 0 28px 22px; font-size: 15px; line-height: 1.75; color: var(--text-mid); margin: 0; }
+.faq-item[open] summary { color: var(--navy); }
+
 /* ── PRIVACY MODAL ── */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; }
 .modal-overlay.open { display: flex; }
